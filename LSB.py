@@ -51,8 +51,24 @@ def embedding(input:str, output:str, message:str):
     wav_write(output, samplerate, input_data)
 
 def unearth(input: str):
-    
 
+    ascii = []
+
+    _fs, input_data = wav_read(input, False)
+    with sf.SoundFile(input) as f:
+        channel = f.channels
+        frame = f.frames
+        samplerate = f.samplerate
+
+    length = input_data.shape[0] / samplerate
+    for  i in range(frame):
+        for j in range(channel):
+            
+#TODO: 最下位ビットを取得
+#TODO: 8回取得したら復元
+#TODO: 取得したかの確認（末尾）
+#TODO: メッセージの書き出し
+            
 def main():
     input_file = './INPUT.wav'
     output_file = './OUTPUT.wav'
