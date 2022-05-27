@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 def embedding(input:str, output:str, message:str):
     index = 0
-    fs, input_data = wav_read(input, False)
+    _fs, input_data = wav_read(input, False)
     # WavFileWarning: Chunk (non-data) not understood, skipping it.
     # scipy が wavファイルのチャンクを読み取れなかったぽい
 
@@ -18,7 +18,7 @@ def embedding(input:str, output:str, message:str):
         frame = f.frames
         samplerate = f.samplerate
     length = input_data.shape[0] / samplerate
-    time = np.linspace(0., length, input_data.shape[0])
+    _time = np.linspace(0., length, input_data.shape[0])
 
 #TODO: scipy の wav_read の shape を vector へ
     #print(np.ndim(input_data))
@@ -42,17 +42,25 @@ def embedding(input:str, output:str, message:str):
     for i in range(frame):
         for j in range(channel):
             if (i * 2) + j + 1 < len(bits):
-                input_data[index][j] = input_data[index][j] & ~1 | int(bits[index])
+                #print(str(input_data[i][j]) + "+" + str(bits[index]))
+                input_data[i][j] = input_data[i][j] & 1 | int(bits[index])
+                #print(input_data[i][j])
+                #print(input_data[index][j])
             #print(i)
-        index = index + 1
+            index = index + 1
     
 #TODO: vector を戻す
 #TODO: 書き込み
     wav_write(output, samplerate, input_data)
 
-def unearth(input: str):
 
+def unearth(input: str):
+    index = 0
+    cnt = 0
     ascii = []
+    tmp = []
+    sum = 0
+    put = 0
 
     _fs, input_data = wav_read(input, False)
     with sf.SoundFile(input) as f:
@@ -63,17 +71,39 @@ def unearth(input: str):
     length = input_data.shape[0] / samplerate
     for  i in range(frame):
         for j in range(channel):
-            
-#TODO: 最下位ビットを取得
-#TODO: 8回取得したら復元
-#TODO: 取得したかの確認（末尾）
-#TODO: メッセージの書き出し
-            
+            ascii.append(input_data[i][j] & 1)
+            cnt = cnt + 1
+            #print(cnt)
+            if cnt == 8:
+                #print(ascii)
+                for k in range(len(ascii)):
+                    #print(k)
+                    #print(str(sum) + "+" + str(2**k) + "*" + str(ascii[7-k]))
+                    sum = sum + (2**k) * ascii[7-k]
+                #print(sum)
+                if put == 1:
+                    tmp.append(chr(sum))
+                if chr(sum) == ":":
+                    put = 1
+                if chr(sum) == "!":
+                    break
+                #print(chr(sum))
+                cnt = 0
+                ascii.clear()
+                index = index + 1
+                sum = 0
+        else:
+            continue
+        break
+    print("".join(tmp))
+
+
 def main():
     input_file = './INPUT.wav'
     output_file = './OUTPUT.wav'
 
     embedding(input_file, output_file, "Please conceal me!")
+    unearth(output_file)
 
 if __name__ == '__main__':
     main()
